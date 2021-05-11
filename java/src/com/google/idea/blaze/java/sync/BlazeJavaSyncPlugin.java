@@ -57,6 +57,7 @@ import com.google.idea.blaze.java.sync.model.BlazeJavaSyncData;
 import com.google.idea.blaze.java.sync.projectstructure.JavaSourceFolderProvider;
 import com.google.idea.blaze.java.sync.projectstructure.Jdks;
 import com.google.idea.blaze.java.sync.workingset.JavaWorkingSet;
+import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.util.Transactions;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -71,6 +72,8 @@ import javax.annotation.Nullable;
 
 /** Sync support for Java. */
 public class BlazeJavaSyncPlugin implements BlazeSyncPlugin {
+  private static final BoolExperiment passNoBuildSync =
+      new BoolExperiment("java.sync.pass.no.build", false);
   private final JdepsFileReader jdepsFileReader = new JdepsFileReader();
 
   @Override
@@ -115,6 +118,20 @@ public class BlazeJavaSyncPlugin implements BlazeSyncPlugin {
       SyncState.Builder syncStateBuilder,
       @Nullable SyncState previousSyncState,
       SyncMode syncMode) {
+    // Non-build syncs don't produce changes to java IDE data (e.g. jdeps).
+    // Pass on the previous android sync data instead since it will be the same.
+    // We will enable this feature after collect enough data to figure out why artifact diff returns
+    // unexpected file list during no sync.
+    if (!SyncMode.involvesBlazeBuild(syncMode) && passNoBuildSync.getValue()) {
+      if (previousSyncState != null) {
+        BlazeJavaSyncData previousSyncData = previousSyncState.get(BlazeJavaSyncData.class);
+        if (previousSyncData != null) {
+          syncStateBuilder.put(previousSyncData);
+        }
+      }
+      return;
+    }
+
     JavaWorkingSet javaWorkingSet = null;
     if (workingSet != null) {
       javaWorkingSet =
@@ -132,7 +149,8 @@ public class BlazeJavaSyncPlugin implements BlazeSyncPlugin {
             artifactLocationDecoder,
             sourceFilter.getSourceTargets(),
             syncStateBuilder,
-            previousSyncState);
+            previousSyncState,
+            syncMode == SyncMode.NO_BUILD);
     if (context.isCancelled() || jdepsMap == null) {
       return;
     }

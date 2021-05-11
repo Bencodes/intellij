@@ -77,7 +77,8 @@ public class JdepsFileReader {
       ArtifactLocationDecoder artifactLocationDecoder,
       Collection<TargetIdeInfo> targetsToLoad,
       SyncState.Builder syncStateBuilder,
-      @Nullable SyncState previousSyncState) {
+      @Nullable SyncState previousSyncState,
+      boolean noBuild) {
     JdepsState oldState =
         previousSyncState != null ? previousSyncState.get(JdepsState.class) : null;
     JdepsState jdepsState =
@@ -87,7 +88,7 @@ public class JdepsFileReader {
               context.push(new TimingScope("LoadJdepsFiles", EventType.Other));
               try {
                 return doLoadJdepsFiles(
-                    project, context, artifactLocationDecoder, oldState, targetsToLoad);
+                    project, context, artifactLocationDecoder, oldState, targetsToLoad, noBuild);
               } catch (InterruptedException e) {
                 throw new ProcessCanceledException(e);
               } catch (ExecutionException e) {
@@ -109,7 +110,8 @@ public class JdepsFileReader {
       BlazeContext context,
       ArtifactLocationDecoder decoder,
       @Nullable JdepsState oldState,
-      Collection<TargetIdeInfo> targetsToLoad)
+      Collection<TargetIdeInfo> targetsToLoad,
+      boolean noBuild)
       throws InterruptedException, ExecutionException {
     Map<OutputArtifact, TargetKey> fileToTargetMap = Maps.newHashMap();
     for (TargetIdeInfo target : targetsToLoad) {
@@ -125,6 +127,27 @@ public class JdepsFileReader {
 
     // TODO: handle prefetching for arbitrary OutputArtifacts
     List<OutputArtifact> outputArtifacts = diff.getUpdatedOutputs();
+    if (!outputArtifacts.isEmpty() && noBuild) {
+      logger.warn(
+          "ArtifactDiff returns non-empty file list during no build sync "
+              + diff.getUpdatedOutputs().stream()
+                  .map(OutputArtifact::getKey)
+                  .collect(toImmutableList()));
+      if (oldState == null) {
+        logger.warn("ArtifactDiff returns unexpected output: Fail to load JdepsState.");
+      } else {
+        // Do not list all artifacts since it may be pretty long.
+        String newPath = outputArtifacts.get(0).getKey();
+        if (oldState.getArtifactState().containsKey(newPath)) {
+          logger.warn("ArtifactDiff returns unexpected output: stored state contains older file.");
+        } else {
+          logger.warn(
+              "ArtifactDiff returns unexpected output: Fail to find artifact form stored state e.g."
+                  + " "
+                  + outputArtifacts.get(0).getKey());
+        }
+      }
+    }
 
     ListenableFuture<?> downloadArtifactsFuture =
         RemoteArtifactPrefetcher.getInstance()
