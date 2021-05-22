@@ -252,9 +252,9 @@ public class BlazeJavascriptWebTestEventsHandlerTest extends BlazeIntegrationTes
         JasmineFileStructureBuilder.getInstance().buildTestFileStructure(barFile);
     JasmineSuiteStructure barSuite = barFileStructure.findTopLevelSuiteByName("bar");
     assertThat(barSuite).isNotNull();
-    JasmineSuiteStructure nestedSuite = barSuite.findSuite("nested");
+    JasmineSuiteStructure nestedSuite = findSuite(barSuite, "nested");
     assertThat(nestedSuite).isNotNull();
-    JasmineSuiteStructure superNestedSuite = nestedSuite.findSuite("super nested");
+    JasmineSuiteStructure superNestedSuite = findSuite(nestedSuite, "super nested");
     assertThat(superNestedSuite).isNotNull();
     {
       String url = handler.suiteLocationUrl(label, kind, "bar");
@@ -322,5 +322,10 @@ public class BlazeJavascriptWebTestEventsHandlerTest extends BlazeIntegrationTes
 
   private static ArtifactLocation src(String relativePath) {
     return ArtifactLocation.builder().setRelativePath(relativePath).setIsSource(true).build();
+  }
+
+  private static JasmineSuiteStructure findSuite(JasmineSuiteStructure suite, String name) {
+    return (JasmineSuiteStructure)
+        suite.getChildren().stream().filter(s -> name.equals(s.getName())).findAny().orElse(null);
   }
 }

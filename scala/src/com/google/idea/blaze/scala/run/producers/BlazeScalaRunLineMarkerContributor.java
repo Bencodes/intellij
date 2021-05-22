@@ -32,7 +32,8 @@ public class BlazeScalaRunLineMarkerContributor extends RunLineMarkerContributor
     if (info == null) {
       return null;
     }
-    return new ReplacementInfo(info, AllIcons.RunConfigurations.TestState.Run);
+    // return new ReplacementInfo(info, AllIcons.RunConfigurations.TestState.Run);
+    return info;
   }
 
   private static class ReplacementInfo extends Info {

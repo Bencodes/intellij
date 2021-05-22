@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.BlazeSyncModificationTracker;
 import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.sdkcompat.typescript.TypeScriptSDKCompat;
 import com.intellij.lang.typescript.compiler.TypeScriptCompilerService;
 import com.intellij.lang.typescript.tsconfig.TypeScriptConfig;
 import com.intellij.lang.typescript.tsconfig.TypeScriptConfigService;
-import com.intellij.lang.typescript.tsconfig.TypeScriptConfigUtil;
 import com.intellij.lang.typescript.tsconfig.TypeScriptConfigsChangedListener;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 class BlazeTypeScriptConfigServiceImpl implements TypeScriptConfigService {
   private static final Logger logger = Logger.getInstance(BlazeTypeScriptConfigServiceImpl.class);
@@ -129,8 +130,32 @@ class BlazeTypeScriptConfigServiceImpl implements TypeScriptConfigService {
   @Nullable
   @Override
   public TypeScriptConfig getPreferableConfig(VirtualFile scopeFile) {
-    return configs.get(
-        TypeScriptConfigUtil.getNearestParentConfigFile(scopeFile, configs.keySet()));
+    return TypeScriptSDKCompat.getPreferableConfig(scopeFile, configs);
+  }
+
+  /** #api203: Added in 2021.1, therefore @Override is ommitted. */
+  @Nullable
+  public TypeScriptConfig getPreferableOrParentConfig(@Nullable VirtualFile virtualFile) {
+    // TODO(messa): Fix Typescript Support for 2021.1 (b/188883814)
+    // throw new RuntimeException("Not implemented");
+    return this.getTypeScriptConfigs().get(0);
+  }
+
+  /** #api203: Added in 2021.1, therefore @Override is ommitted. */
+  @Nullable
+  public TypeScriptConfig getDirectIncludePreferableConfig(@Nullable VirtualFile virtualFile) {
+    // TODO(messa): Fix Typescript Support for 2021.1 (b/188883814)
+    // throw new RuntimeException("Not implemented");
+    System.out.println(">>>>> size of TypeScriptConfigs = " + this.getTypeScriptConfigs().size());
+    return this.getTypeScriptConfigs().get(0);
+  }
+
+  /** #api203: Added in 2021.1, therefore @Override is ommitted. */
+  @NotNull
+  public List<VirtualFile> getRootConfigFiles() {
+    // TODO(messa): Fix Typescript Support for 2021.1 (b/188883814)
+    // throw new RuntimeException("Not implemented");
+    return this.getConfigFiles();
   }
 
   @Nullable
@@ -139,8 +164,7 @@ class BlazeTypeScriptConfigServiceImpl implements TypeScriptConfigService {
     return null;
   }
 
-  /** Removed in 2021.1. #api203 https://github.com/bazelbuild/intellij/issues/2329 */
-  @Override
+  /** #api203: Removed in 2021.1. #api203 https://github.com/bazelbuild/intellij/issues/2329 */
   public List<TypeScriptConfig> getConfigs() {
     return getTypeScriptConfigs();
   }
@@ -170,7 +194,7 @@ class BlazeTypeScriptConfigServiceImpl implements TypeScriptConfigService {
     listeners.add(listener);
   }
 
-  @Override
+  /** #api203: Removed in 2021.1, therefore @Override is ommitted. */
   public boolean hasConfigs() {
     return !configs.isEmpty();
   }

@@ -25,6 +25,7 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor.Info;
 import com.intellij.icons.AllIcons;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.scala.runner.ScalaRunLineMarkerContributor;
 import org.junit.Test;
@@ -71,6 +72,8 @@ public class BlazeScalaRunLineMarkerContributorTest extends BlazeRunConfiguratio
     // Main object info replaces the one from the scala plugin
     Info replacedObjectInfo = replacedContributor.getInfo(objectIdentifier);
     assertThat(replacedObjectInfo).isNotNull();
+    assertThat(Arrays.asList(objectInfo.actions))
+        .containsExactlyElementsIn(Arrays.asList(replacedObjectInfo.actions));
     assertThat(objectInfo.shouldReplace(replacedObjectInfo)).isTrue();
 
     // Hae main method info
