@@ -1,5 +1,6 @@
 """Implementation of IntelliJ-specific information collecting aspect."""
 
+load("@rules_android//providers:providers.bzl", _AndroidIdeInfo = "AndroidIdeInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     ":artifacts.bzl",
@@ -812,6 +813,8 @@ def collect_android_info(target, ctx, semantics, ide_info, ide_info_file, output
 def _get_android_ide_info(target):
     """Returns the AndroidIdeInfo provider for the given target."""
 
+    if _AndroidIdeInfo in target:
+        return target[_AndroidIdeInfo]
     if hasattr(android_common, "AndroidIdeInfo"):
         return target[android_common.AndroidIdeInfo]
 

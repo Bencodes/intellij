@@ -1,5 +1,6 @@
 """An aspect to gather info needed by the FastBuildService."""
 
+load("@rules_android//providers:providers.bzl", _AndroidIdeInfo = "AndroidIdeInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo", "java_common")
 load(
     ":artifacts.bzl",
@@ -15,6 +16,8 @@ load(
 _DEP_ATTRS = ["deps", "exports", "runtime_deps", "_java_toolchain"]
 
 def _get_android_ide_info(target):
+    if _AndroidIdeInfo in target:
+        return target[_AndroidIdeInfo]
     if hasattr(android_common, "AndroidIdeInfo") and android_common.AndroidIdeInfo in target:
         return target[android_common.AndroidIdeInfo]
     if hasattr(target, "android"):

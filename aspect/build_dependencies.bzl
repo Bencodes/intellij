@@ -5,6 +5,7 @@ load(
     "CPP_COMPILE_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
 )
+load("@rules_android//providers:providers.bzl", _AndroidIdeInfo = "AndroidIdeInfo")
 load("@rules_java//java:defs.bzl", "JavaInfo")
 
 ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import"
@@ -148,6 +149,8 @@ def declares_android_resources(target, ctx):
     return hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
 
 def _get_android_provider(target):
+    if _AndroidIdeInfo in target:
+        return target[_AndroidIdeInfo]
     if hasattr(android_common, "AndroidIdeInfo"):
         if android_common.AndroidIdeInfo in target:
             return target[android_common.AndroidIdeInfo]

@@ -517,11 +517,11 @@ jvm_maven_import_external(
     ],
 )
 
-RULES_ANDROID_COMMIT = "bcc793e35addb916dd4ac1b858dd9f765083dbe7"
+RULES_ANDROID_COMMIT = "52a445a58302b5b940516ac53fe7b683b2ce9b54"
 
 http_archive(
     name = "rules_android",
-    sha256 = "8fad8a90bcc7926f1c1a65284ced2d99503d2574948f265bc4f7d5f8225a6d1b",
+    sha256 = "9fe89983f9cd75480eeb928c00c58bfedc12e7bf8fe0c127cc16acb985facd03",
     strip_prefix = "rules_android-" + RULES_ANDROID_COMMIT,
     urls = ["https://github.com/bazelbuild/rules_android/archive/%s.zip" % RULES_ANDROID_COMMIT],
 )
